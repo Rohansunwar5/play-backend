@@ -11,7 +11,16 @@ dotenv.config({
 //   "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js"
 // },
 
+
 connectDB()
+.then(() => { //server start 
+  app.listen(process.env.PORT || 8000, () => {
+    console.log(`Server is runnning at port : ${process.env.PORT}`);
+  })
+})
+.catch((err) => {
+  console.log("mongoDB connection failed!! ", err);
+})
 
 /*
 import express from "express"
