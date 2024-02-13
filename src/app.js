@@ -18,5 +18,5 @@ app.use(cookieParser())
 
 
 export { app }  
-
+// we upload file thorugh multer and upload it to local server temporarily and upload it to cloudnairy 
 // we mostly use app.use when we want to middleware or configure
