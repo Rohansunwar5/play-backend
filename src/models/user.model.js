@@ -48,13 +48,13 @@ const userSchema = new Schema(
   }
 , {timestamps : true})
 
-// using mongoose pre hook fro encryption
+// using mongoose pre hook for encryption
 // in the pre, as a call back we are not using arrow function as it will have problem holding on the current context, meaning this, we need acces i.e why we use normal function 
-username.pre("save", async function (next) {
+userSchema.pre("save", async function (next) {
   // we are using next to pass the flag 
   // encrypt only when we are sending the password field  =>  in case of updation or creation
   if(!this.isModified("password")) return next(); // checking 
-  this.password = bcrypt.hash(this.password, 10) 
+  this.password = await bcrypt.hash(this.password, 10) 
   next() 
 })
 

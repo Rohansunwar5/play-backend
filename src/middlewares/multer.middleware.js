@@ -10,6 +10,8 @@ const storage = multer.diskStorage({
   }
 })
 
+// this storage can be used in the controllers with path and callback function  to handle errors or success of uploading process
+
 export const upload = multer ({ 
   storage,
 })

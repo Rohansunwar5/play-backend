@@ -15,6 +15,14 @@ app.use(express.urlencoded({extended: true, limit: "16kb"})) //handling the url
 app.use(express.static("public")) // storing in server 
 app.use(cookieParser())
 
+//routes import 
+
+import userRouter from './routes/user.routes.js'
+
+// routes declaration
+
+app.use("/api/v1/users", userRouter)
+// http://localhost:8000/api/v1/users/register  => this how app.js tranfers control to userrouter and from there "registration" or "login" is hit
 
 
 export { app }  
