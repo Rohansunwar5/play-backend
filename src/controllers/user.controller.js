@@ -16,29 +16,37 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 // return res 
 const registerUser = asyncHandler( async (req,res) => {
     
-    // getting details from frontend 
+    // extracting from frontend 
     const {fullName, email, username , password} = req.body
-    console.log("email: ", email);
+    // console.log("request body",req.body);
     // validating 
     if([
       fullName, email, username, password
     ].some((field) => field?.trim() === "")){
       throw new ApiError(400, "All fields are required")
     }
-    if(!email.includes("@")  && !email.endsWith(".com")) {
-      throw  new ApiError(400, "Invalid Email ID")
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+    throw new ApiError(400, "Invalid Email ID");
     }
+
+    
     // user exists already or not 
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
       $or:[{ username },{ email }] // checking for both email and username 
     })
     if(existedUser){
       throw new ApiError(409, "User with email or username already exist")
     }
+
+    // console.log(" Request files " ,req.files);
     // check for images , files acces from multer 
-    const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
-    // console.log(req.body);
+    const avatarLocalPath = req.files?.avatar[0]?.path; //optional chaining
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path?? null;  this was returning undefined so had to make a classic check 
+    let coverImageLocalPath;
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+      coverImageLocalPath = req.files.coverImage[0].path
+    }
 
     if(!avatarLocalPath){
       throw new ApiError(400, "avatar image is required");
@@ -61,7 +69,7 @@ const registerUser = asyncHandler( async (req,res) => {
       username: username.toLowerCase()
     })
     // checking if user is entered in db 
-    const createdUser = await User.findById(user.__id).select(
+    const createdUser = await User.findById(user._id).select(
       "-password -refreshToken" // removing  the password & refresh token field from response body
     ); 
 

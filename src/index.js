@@ -6,7 +6,7 @@ import connectDB from "./db/index.js";
 import { app } from "./app.js";
 
 dotenv.config({
-  path: '../env'
+  path: '../.env'
 })
 // "scripts": {  in order to run above config 
 //   "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js"

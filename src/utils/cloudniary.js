@@ -1,4 +1,5 @@
 import {v2 as cloudinary} from 'cloudinary';
+import { response } from 'express';
 import fs from "fs" // fs is file system inside node js          
 
 cloudinary.config({ 
@@ -19,10 +20,13 @@ const uploadOnCloudinary = async (localFilePath) => {
       resource_type: "auto"
     })
     // file has been uploaded successfully 
-    console.log("file is uploaded on cloudinary", response.url);
+    // console.log("file is uploaded on cloudinary", response.url); // since our test was successfull  we can remove this line of code 
+    console.log("cloudnairy response ",response);
+    fs.unlinkSync(localFilePath)
     return response
   } catch (error) {
     // unlinking the locally saved temp file as the operation got failed 
+   
     fs.unlinkSync(localFilePath)
     return null;
   }
