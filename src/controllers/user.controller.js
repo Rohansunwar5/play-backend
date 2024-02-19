@@ -5,15 +5,24 @@ import { uploadOnCloudinary } from "../utils/cloudniary.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 
 // custom asyncHanlder that is a higher order function that accepts a function, so that we don't need to do promise for every function
-// get user details from frontend 
-// validation - not empty 
-// check if user already exists : username , email 
-// check for images, check for avatar 
-// upload them to cloudnairy, avatar 
-// create user object - create entry in db 
-// remove password and refresh token field from response 
-// check for user creation 
-// return res 
+const genrateAccessAndRefreshTokens = async(userId) =>{
+  try {
+    const user = await User.findById(userId)
+    const accessToken = user.generateAccessToken()
+    const refreshToken = user.generateRefreshToken()
+    
+    user.refreshToken = refreshToken // sending to database 
+    // when saving moongose models also kicks in for example in the model.js we have made password as required true, so we use validateBeforeSave: false         
+    await user.save({validateBeforeSave: false}) 
+    
+    return {accessToken, refreshToken}; // sending the reference
+
+  } catch (error) {
+    throw new ApiError(500, "Something went wrong while generating refresh and acces token")
+  }
+}
+
+
 const registerUser = asyncHandler( async (req,res) => {
     
     // extracting from frontend 
@@ -82,6 +91,93 @@ const registerUser = asyncHandler( async (req,res) => {
 
 })
 
+const loginUser = asyncHandler(async (req, res) => {
+  // req body => data 
+  // username or email 
+  // find the user 
+  // password check 
+  // access and refresh token 
+  // send cokkie
+  
+  const {email, username, password} = req.body;
+
+  if(!username || !email) {
+    throw new ApiError(400, "Username or password is required ")
+  }
+
+  const user = await User.findOne({
+    $or: [{username}, {email}]
+  })
+
+  if(!user){
+    throw new ApiError(400, "User does not exist")
+  }
+
+  // checking password
+  // note the user we are taking here is the instance from local
+
+  const isPasswordValid =  await user.isPasswordCorrect(password);
+
+  if(!isPasswordValid){
+    throw new ApiError(401, "Invalid User Credentials")
+  }
+
+  // If everything is ok then generate tokens and cookie and send them to client side
+
+  const {accessToken, refreshToken} =  await genrateAccessAndRefreshTokens(user._id)// passing id
+
+  const LoggedInUser = await User.findById(user._id).select('-password -refreshToken')
+
+  // sending cookies
+  const options = {
+    httpOnly: true, // by default anyone can modify cookies from thr frontend, so by stating  this option it will only be modifiable from the server 
+    secure: true,
+  }
+
+  return res
+  .status(200)
+  .cookie("accessToken", accessToken, options) // key value pairs 
+  .cookie("refreshToken", refreshToken ,options)
+  .json(
+    new ApiResponse(
+      200,
+      {
+        user: LoggedInUser, accessToken, refreshToken
+      },
+      "User logged in Successfully"
+    )
+  )
+})
+
+const logoutUser = asyncHandler(async(req, res) => {
+  // clear out from  cookiess 
+  // 
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set:{ // set is mongodb operator 
+        refreshToken: undefined
+      },
+     
+    }, 
+    {
+      new: true
+    }   
+  )
+  const options = {
+    httpOnly: true, 
+    secure: true,
+  }
+
+  return res
+  .status(200)
+  .clearCookie("accessToken", options)
+  .clearCookie("refreshToken", options)
+  .json(new ApiResponse(200, {}, "User Logged Out"))
+})
+
 export {
   registerUser,
+  loginUser,
+  logoutUser,
 } 
