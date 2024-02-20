@@ -152,7 +152,7 @@ const loginUser = asyncHandler(async (req, res) => {
 const logoutUser = asyncHandler(async(req, res) => {
   // clear out from  cookiess 
   // 
-  await User.findByIdAndUpdate(
+  await User.findByIdAndUpdate( // finds the user and make some changes
     req.user._id,
     {
       $set:{ // set is mongodb operator 

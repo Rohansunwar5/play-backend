@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken"
 
 export const verifyJWT = asyncHandler (async (req, _, next) => {
   try {
-    let token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer", "")
+    let token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer", "")// authorization for mobile 
   
     if(!token){
       throw new ApiError(401, "Unauthorized request")
