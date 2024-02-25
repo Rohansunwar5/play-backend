@@ -158,8 +158,8 @@ const logoutUser = asyncHandler(async(req, res) => {
   await User.findByIdAndUpdate( // finds the user and make some changes
     req.user._id,
     {
-      $set:{ // set is mongodb operator 
-        refreshToken: undefined
+      $unset:{ // set is mongodb operator 
+        refreshToken: 1 // this removes the field from document 
       },
      
     }, 
@@ -236,7 +236,7 @@ const changeCurrentPassword = asyncHandler(async (req,res) => {
   //   throw new ApiError(400,'New password and Confirm Password do not match')
   // }
 
-  const user = User.findById(req.user?._id)
+  const user = await User.findById(req.user?._id)
   const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
 
   if(!isPasswordCorrect){
